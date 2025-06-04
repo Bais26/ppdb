@@ -29,11 +29,17 @@ class Pendaftaran extends Model
         'alamat_ortu',
 
         'foto_sttb',
+        'status_sttb',
         'foto_skhun',
+        'status_skhun',
         'pas_foto',
+        'status_pas_foto',
         'foto_akta',
+        'status_akta',
         'foto_nisn',
+        'status_nisn',
         'persetujuan',
+        'status_berkas',
         'status_pembayaran',
         'bukti_bayar',
     ];
@@ -56,8 +62,26 @@ class Pendaftaran extends Model
     {
         $year = date('Y');
         $lastNumber = self::whereYear('created_at', $year)
-                         ->count() + 1;
-        
+            ->count() + 1;
+
         return 'PS-' . $year . '-' . str_pad($lastNumber, 3, '0', STR_PAD_LEFT);
+    }
+
+    public function generateRevisionToken()
+    {
+        $this->revision_token = \Str::random(64);
+        $this->revision_token_expires_at = now()->addDays(7); // Token berlaku 7 hari
+        $this->save();
+
+        return $this->revision_token;
+    }
+
+    public function getRevisionUrl()
+    {
+        if (!$this->revision_token) {
+            $this->generateRevisionToken();
+        }
+
+        return route('revisi', $this->revision_token);
     }
 }
